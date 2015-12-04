@@ -493,6 +493,9 @@ public class JavaSymbol implements Symbol {
 
     @CheckForNull
     public MethodJavaSymbol overriddenSymbol() {
+      if(isStatic()) {
+        return null;
+      }
       TypeJavaSymbol enclosingClass = enclosingClass();
       for (JavaType.ClassJavaType superType : enclosingClass.superTypes()) {
         MethodJavaSymbol overridden = overriddenSymbolFrom(superType);
