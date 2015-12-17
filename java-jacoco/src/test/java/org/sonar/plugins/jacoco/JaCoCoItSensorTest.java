@@ -119,16 +119,4 @@ public class JaCoCoItSensorTest {
     verify(context).saveMeasure(eq(resource), argThat(new IsMeasure(CoreMetrics.IT_COVERED_CONDITIONS_BY_LINE, "15=0")));
   }
 
-  @Test
-  public void doNotSaveMeasureOnResourceWhichDoesntExistInTheContext() {
-    SensorContext context = mock(SensorContext.class);
-    Project project = mock(Project.class);
-    when(context.getResource(any(Resource.class))).thenReturn(null);
-    when(javaClasspath.getBinaryDirs()).thenReturn(ImmutableList.of(outputDir));
-
-    sensor.analyse(project, context);
-
-    verify(context, never()).saveMeasure(any(Resource.class), any(Measure.class));
-  }
-
 }

@@ -208,28 +208,6 @@ public class JaCoCoSensorTest {
     verify(testCase).setCoverageBlock(testAbleFile, linesExpected);
   }
 
-  @Test
-  public void force_coverage_to_zero_when_no_report() {
-    ModuleFileSystem fs = mock(ModuleFileSystem.class);
-    Map<String, String> props = ImmutableMap.of(JacocoConfiguration.REPORT_MISSING_FORCE_ZERO, "true", JacocoConfiguration.REPORT_PATH_PROPERTY, "foo");
-    DefaultFileSystem fileSystem = new DefaultFileSystem(null);
-    fileSystem.add(new DefaultInputFile("foo").setLanguage("java"));
-    JacocoConfiguration configuration = new JacocoConfiguration(new Settings().addProperties(props), fileSystem);
-    JaCoCoSensor sensor_force_coverage = new JaCoCoSensor(configuration, perspectives, fs, pathResolver, javaResourceLocator, javaClasspath);
-    outputDir = TestUtils.getResource("/org/sonar/plugins/jacoco/JaCoCoSensorTest/");
-    org.sonar.api.resources.File resource = mock(org.sonar.api.resources.File.class);
-    when(context.getResource(any(Resource.class))).thenReturn(resource);
-    when(javaClasspath.getBinaryDirs()).thenReturn(ImmutableList.of(outputDir));
-    when(pathResolver.relativeFile(any(File.class), any(String.class))).thenReturn(new File("foo"));
-    assertThat(sensor_force_coverage.shouldExecuteOnProject(project)).isTrue();
-    sensor_force_coverage.analyse(project, context);
-
-    verify(context, times(1)).saveMeasure(any(Resource.class), eqMetric(CoreMetrics.LINES_TO_COVER_KEY, 7));
-    verify(context, times(1)).saveMeasure(any(Resource.class), eqMetric(CoreMetrics.UNCOVERED_LINES_KEY, 7));
-    verify(context, times(1)).saveMeasure(any(Resource.class), eqMetric(CoreMetrics.CONDITIONS_TO_COVER_KEY, 2));
-    verify(context, times(1)).saveMeasure(any(Resource.class), eqMetric(CoreMetrics.UNCOVERED_CONDITIONS_KEY, 2));
-  }
-
   static Measure<?> eqMetric(String metricKey, int value) {
     return argThat(new MetricMatcher(metricKey, value));
   }
@@ -249,16 +227,6 @@ public class JaCoCoSensorTest {
       Measure<?> actualMeasure = (Measure<?>) actual;
       return actualMeasure.getMetricKey().equals(metric) && actualMeasure.getIntValue()==value;
     }
-  }
-
-  @Test
-  public void do_not_save_measure_on_resource_which_doesnt_exist_in_the_context() {
-    when(context.getResource(any(Resource.class))).thenReturn(null);
-    when(javaClasspath.getBinaryDirs()).thenReturn(ImmutableList.of(outputDir));
-
-    sensor.analyse(project, context);
-
-    verify(context, never()).saveMeasure(any(Resource.class), any(Measure.class));
   }
 
   @Test

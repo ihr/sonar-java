@@ -17,6 +17,7 @@
     <name>SonarSource</name>
     <url>http://www.sonarsource.com</url>
   </organization>
+
   <licenses>
     <license>
       <name>GNU LGPL 3</name>
@@ -30,7 +31,15 @@
       <id>godin</id>
       <name>Evgeny Mandrikov</name>
     </developer>
+    <developer>
+      <id>ihr</id>
+      <name>Ivan Hristov</name>
+    </developer>
   </developers>
+
+  <properties>
+    <mongodb-driver.version>3.1.1</mongodb-driver.version>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -52,6 +61,15 @@
       <artifactId>java-jacoco-previous</artifactId>
       <version>${project.version}</version>
     </dependency>
+
+    <!-- MongoDB -->
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver</artifactId>
+      <version>${mongodb-driver.version}</version>
+    </dependency>
+
+
     <!-- Would be provided by environment -->
     <dependency>
       <groupId>org.apache.ant</groupId>
