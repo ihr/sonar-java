@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2013 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2013-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,11 +13,10 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.sonar.orchestrator.Orchestrator;
@@ -59,7 +58,7 @@ public class JavaPerformanceTest {
   public void perform() throws IOException {
     ORCHESTRATOR.getServer().provisionProject("project", "project");
     ORCHESTRATOR.getServer().associateProjectToQualityProfile("project", "java", "no-rules");
-    SonarRunner build = SonarRunner.create(ORCHESTRATOR.getFileLocationOfShared("sslr/oracle-jdk-1.6.0.31").getFile())
+    SonarRunner build = SonarRunner.create(FileLocation.of("../sources/sslr/oracle-jdk-1.6.0.31").getFile())
       .setEnvironmentVariable("SONAR_RUNNER_OPTS", "-Xmx1024m -server")
       .setProperty("sonar.importSources", "false")
       .setProperty("sonar.showProfiling", "true")
@@ -73,7 +72,7 @@ public class JavaPerformanceTest {
 
     double time = sensorTime(build.getProjectDir(), result.getLogs(), SENSOR_NAME);
 
-    double expected = 240;
+    double expected = 194;
     assertThat(time).isEqualTo(expected, Delta.delta(expected * 0.04));
   }
 

@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.resolve;
 
@@ -36,6 +36,7 @@ import org.sonar.plugins.java.api.tree.VariableTree;
 
 import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +65,7 @@ public class JavaSymbol implements Symbol {
 
   JavaType type;
 
+  boolean completing = false;
   private List<IdentifierTree> usages;
 
   public JavaSymbol(int kind, int flags, @Nullable String name, @Nullable JavaSymbol owner) {
@@ -101,7 +103,9 @@ public class JavaSymbol implements Symbol {
     if (completer != null) {
       Completer c = completer;
       completer = null;
+      completing = true;
       c.complete(this);
+      completing = false;
     }
   }
 
@@ -493,6 +497,9 @@ public class JavaSymbol implements Symbol {
 
     @CheckForNull
     public MethodJavaSymbol overriddenSymbol() {
+      if (isStatic()) {
+        return null;
+      }
       TypeJavaSymbol enclosingClass = enclosingClass();
       for (JavaType.ClassJavaType superType : enclosingClass.superTypes()) {
         MethodJavaSymbol overridden = overriddenSymbolFrom(superType);

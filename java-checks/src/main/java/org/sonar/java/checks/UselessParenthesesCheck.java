@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,12 +13,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.checks;
 
+import com.google.common.collect.ImmutableList;
 import org.sonar.api.server.rule.RulesDefinition;
 import org.sonar.check.Priority;
 import org.sonar.check.Rule;
@@ -87,7 +88,9 @@ public class UselessParenthesesCheck extends SubscriptionBaseVisitor {
   @Override
   public void visitNode(Tree tree) {
     if(tree.is(Kind.PARENTHESIZED_EXPRESSION) && hasParentExpression((ParenthesizedTree) tree)) {
-      addIssue(tree, "Remove those useless parentheses.");
+      reportIssue(((ParenthesizedTree) tree).openParenToken(),
+          "Remove those useless parentheses.",
+          ImmutableList.of(new JavaFileScannerContext.Location("Original", ((ParenthesizedTree) tree).closeParenToken())), null);
     }
     parent.push(tree);
   }

@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,13 +13,14 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.resolve;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.sonar.plugins.java.api.semantic.Type;
 
@@ -201,10 +202,17 @@ public class Resolve {
         bestSoFar = symbol;
       }
     }
-    for (JavaType interfaceType : c.getInterfaces()) {
-      JavaSymbol symbol = findMemberType(env, site, name, interfaceType.symbol);
-      if (symbol.kind < bestSoFar.kind) {
-        bestSoFar = symbol;
+    if (c.getInterfaces() == null) {
+      // Invariant to check that interfaces are not set only when we are looking into the symbol we are currently completing.
+      // required for generics
+      Preconditions.checkState(c.completing, "interfaces of a symbol not currently completing are not set.");
+      Preconditions.checkState(c == site);
+    } else {
+      for (JavaType interfaceType : c.getInterfaces()) {
+        JavaSymbol symbol = findMemberType(env, site, name, interfaceType.symbol);
+        if (symbol.kind < bestSoFar.kind) {
+          bestSoFar = symbol;
+        }
       }
     }
     return bestSoFar;

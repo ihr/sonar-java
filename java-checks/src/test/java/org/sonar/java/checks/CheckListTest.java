@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.checks;
 
@@ -46,7 +46,8 @@ public class CheckListTest {
   private static final List<String> SE_CHEKS = ImmutableList.of(
       "NullDereferenceCheck",
     "ConditionAlwaysTrueOrFalseCheck",
-    "UnclosedResourcesCheck"
+    "UnclosedResourcesCheck",
+    "LocksNotUnlockedCheck"
   );
 
   /**
@@ -55,7 +56,7 @@ public class CheckListTest {
   @Test
   public void count() {
     int count = 0;
-    List<File> files = (List<File>) FileUtils.listFiles(new File("src/main/java/org/sonar/java/checks/"), new String[] {"java"}, false);
+    List<File> files = (List<File>) FileUtils.listFiles(new File("src/main/java/org/sonar/java/checks/"), new String[] {"java"}, true);
     for (File file : files) {
       if (file.getName().endsWith("Check.java")) {
         count++;

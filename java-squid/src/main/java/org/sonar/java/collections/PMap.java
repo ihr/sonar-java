@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,13 +13,15 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.collections;
 
 import javax.annotation.Nullable;
+import java.util.Iterator;
+import java.util.Map;
 
 /**
  * Persistent (functional) Map.
@@ -50,6 +52,11 @@ public interface PMap<K, V> {
    * Performs the given action for each entry in this map until all entries have been processed or the action throws an exception.
    */
   void forEach(Consumer<K, V> action);
+
+  /**
+   * Iterates over all elements.
+   */
+  Iterator<Map.Entry<K, V>> entriesIterator();
 
   /**
    * @return true if this map contains no elements

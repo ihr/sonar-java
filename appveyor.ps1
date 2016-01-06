@@ -33,7 +33,7 @@ function FetchAndUnzip
 
 function InstallAppveyorTools
 {
-	$travisUtilsVersion = "16"
+	$travisUtilsVersion = "21"
 	$localPath = "$env:USERPROFILE\.local"
 	$travisUtilsPath = "$localPath\travis-utils-$travisUtilsVersion"
 	if (Test-Path $travisUtilsPath)
@@ -94,11 +94,9 @@ function BuildSnapshot
 {
 	param ([string]$Project)
 
-	echo "Fetch and build latest green snapshot of [$Project]"
+	echo "Fetch and build snapshot of [$Project]"
 
-	$lastGreenSha1 = (new-object Net.WebClient).DownloadString("http://sonarsource-979.appspot.com/$Project/latestGreen")
-
-	Build $Project $lastGreenSha1
+	Build $Project "HEAD"
 }
 
 function CheckLastExitCode
@@ -129,23 +127,13 @@ switch ($env:RUN)
 	{
 		InstallAppveyorTools
 
-		mvn package "--batch-mode" "-Dsource.skip=true" "-Denforcer.skip=true" "-Danimal.sniffer.skip=true" "-Dmaven.test.skip=true"
-		CheckLastExitCode
-		try
+		if ($env:SQ_VERSION -eq "DEV")
 		{
-			if ($env:SQ_VERSION -eq "DEV")
-			{
-				BuildSnapshot "SonarSource/sonarqube"
-			}
+			BuildSnapshot "SonarSource/sonarqube"
+		}
 
-			pushd its/$env:RUN
-			mvn package "--batch-mode" "-Dsonar.runtimeVersion=$env:SQ_VERSION" "-Dmaven.test.redirectTestOutputToFile=false" "-Dsonar.jdbc.dialect=embedded" "-Dorchestrator.updateCenterUrl=http://update.sonarsource.org/update-center-dev.properties" "-Dmaven.localRepository=$env:USERPROFILE\.m2\repository"
-			CheckLastExitCode
-		}
-		finally
-		{
-			popd
-		}
+		mvn package "--batch-mode" "-Pit-$env:RUN" "-Dsonar.runtimeVersion=$env:SQ_VERSION" "-Dmaven.test.redirectTestOutputToFile=false" "-Dsonar.jdbc.dialect=embedded" "-Dorchestrator.updateCenterUrl=http://update.sonarsource.org/update-center-dev.properties" "-Dmaven.localRepository=$env:USERPROFILE\.m2\repository"
+		CheckLastExitCode
 	}
 
 	default

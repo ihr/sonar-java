@@ -1,4 +1,7 @@
 package javax.annotation;
+
+import static java.lang.Boolean.TRUE;
+
 @interface CheckForNull {}
 
 public static class Class extends SuperClass {
@@ -13,6 +16,7 @@ public static class Class extends SuperClass {
 
   private Object instanceVariable;
   private boolean field, field1, field2;
+  private Boolean preAssignedBoolean = true;
 
   public void assign(boolean parameter) {
     parameter = false;
@@ -1049,22 +1053,22 @@ public static class Class extends SuperClass {
     } catch (Exception e) {
       if (a) { // Noncompliant {{Change this condition so that it does not always evaluate to "false"}}
       }
-      if (b) { // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
+      if (b) {
       }
       c = true;
       d = true;
     } catch (Exception e) {
       if (a) { // Noncompliant {{Change this condition so that it does not always evaluate to "false"}}
       }
-      if (c) { // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
+      if (c) {
       }
       d = true;
     }
     if (a) { // Noncompliant {{Change this condition so that it does not always evaluate to "false"}}
     }
-    if (b) { // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
+    if (b) {
     }
-    if (c) { // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
+    if (c) {
     }
     if (d) {
     }
@@ -1080,9 +1084,9 @@ public static class Class extends SuperClass {
     } finally {
       if (a) { // Noncompliant {{Change this condition so that it does not always evaluate to "false"}}
       }
-      if (b) { // Noncompliant
+      if (b) {
       }
-      if (c) { // Noncompliant
+      if (c) {
       }
       b = true;
     }
@@ -1090,7 +1094,7 @@ public static class Class extends SuperClass {
     }
     if (b) { // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
     }
-    if (c) { // Noncompliant
+    if (c) {
     }
   }
 
@@ -1154,7 +1158,29 @@ public static class Class extends SuperClass {
     value = (b1 ^ b2) ? 1 : 2; // Noncompliant {{Change this condition so that it does not always evaluate to "false"}}
     value = (b1 ^ !b2) ? 1 : 2; // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
   }
-
+  
+  public void handlePreAssignedBoolean() {
+    if (preAssignedBoolean) { // Compliant because it is a field
+      System.out.print("Was true");
+    }
+    System.out.println();
+  }
+  
+  public void handlePreAssignedBoolean() {
+    Boolean preAssignedBoolean = true;
+    if (preAssignedBoolean) { // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
+      System.out.print("Was true");
+    }
+    System.out.println();
+  }
+  
+  public void handlePreAssignedBoolean() {
+    Boolean preAssignedBoolean = Boolean.TRUE;
+    if (preAssignedBoolean) { // Noncompliant {{Change this condition so that it does not always evaluate to "true"}}
+      System.out.print("Was true");
+    }
+    System.out.println();
+  }
 }
 
 class SuperClass {
@@ -1248,6 +1274,33 @@ class SuperClass {
     if(foo) {}
     foo = false;
     foo &= a;
-    if(foo) {} //false negative: Should be fixed by SONARJAVA-1391
+    if(foo) {} // Noncompliant
+  }
+  
+  public void sonarJava_1391(boolean b1, boolean b2) {
+    b1 &= !b2;
+    if (b1) {
+      log("b1 true");
+    } else {
+      if (b2) {  // Compliant (fixed false positive)
+        log("b2 true");
+      } else {
+        log("b2 false");
+      }
+    }
+  }
+  
+  public void booleanObjectAssignment() {
+    boolean b = Boolean.FALSE;
+    if (b) {   // Noncompliant
+      log("B true");
+    }
+  }
+  
+  public void staticBooleanObjectAssignment() {
+    boolean b = TRUE;
+    if (b) {   // Noncompliant
+      log("B true");
+    }
   }
 }

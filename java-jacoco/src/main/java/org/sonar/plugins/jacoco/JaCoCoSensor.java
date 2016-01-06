@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2010 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2010-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.plugins.jacoco;
 
@@ -69,12 +69,11 @@ public class JaCoCoSensor implements Sensor {
   @Override
   public boolean shouldExecuteOnProject(Project project) {
     File report = pathResolver.relativeFile(fileSystem.baseDir(), configuration.getReportPath());
-    boolean foundReport = report.exists() && report.isFile();
-    boolean shouldExecute = configuration.shouldExecuteOnProject(foundReport);
-    if(!foundReport && shouldExecute) {
-      JaCoCoExtensions.LOG.info("JaCoCoSensor: JaCoCo report not found.");
+    boolean foundReport = report.isFile();
+    if(!foundReport) {
+      JaCoCoExtensions.LOG.info("JaCoCoSensor: JaCoCo report not found : "+report.getPath());
     }
-    return shouldExecute;
+    return configuration.shouldExecuteOnProject(foundReport);
   }
 
   class UnitTestsAnalyzer extends AbstractAnalyzer {

@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,12 +13,13 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.model;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.sonar.sslr.api.RecognitionException;
@@ -51,6 +52,7 @@ public class InternalVisitorsBridge {
   private static final Logger LOG = LoggerFactory.getLogger(InternalVisitorsBridge.class);
 
   private final List<JavaFileScanner> scanners;
+  private List<JavaFileScanner> executableScanners;
   private final SonarComponents sonarComponents;
   private final boolean symbolicExecutionEnabled;
   private SemanticModel semanticModel;
@@ -59,7 +61,8 @@ public class InternalVisitorsBridge {
   private VisitorContext context;
   private JavaVersion javaVersion;
 
-  public InternalVisitorsBridge(Iterable visitors, List<File> projectClasspath, @Nullable SonarComponents sonarComponents) {
+  @VisibleForTesting
+  InternalVisitorsBridge(Iterable visitors, List<File> projectClasspath, @Nullable SonarComponents sonarComponents) {
     this(visitors, projectClasspath, sonarComponents, true);
   }
 
@@ -71,6 +74,7 @@ public class InternalVisitorsBridge {
       }
     }
     this.scanners = scannersBuilder.build();
+    this.executableScanners = scanners;
     this.sonarComponents = sonarComponents;
     this.projectClasspath = projectClasspath;
     this.symbolicExecutionEnabled = symbolicExecutionEnabled;
@@ -90,6 +94,7 @@ public class InternalVisitorsBridge {
 
   public void setJavaVersion(JavaVersion javaVersion) {
     this.javaVersion = javaVersion;
+    this.executableScanners = executableScanners(scanners, javaVersion);
   }
 
   public JavaVersion getJavaVersion() {
@@ -119,7 +124,7 @@ public class InternalVisitorsBridge {
     if (symbolicExecutionEnabled && isNotJavaLangOrSerializable(PackageUtils.packageName(tree.packageDeclaration(), "/"))) {
       new SymbolicExecutionVisitor().scanFile(javaFileScannerContext);
     }
-    for (JavaFileScanner scanner : executableScanners(scanners)) {
+    for (JavaFileScanner scanner : executableScanners) {
       scanner.scanFile(javaFileScannerContext);
     }
     if (semanticModel != null) {
@@ -128,21 +133,14 @@ public class InternalVisitorsBridge {
     }
   }
 
-  private List<JavaFileScanner> executableScanners(List<JavaFileScanner> scanners) {
+  private static List<JavaFileScanner> executableScanners(List<JavaFileScanner> scanners, JavaVersion javaVersion) {
     ImmutableList.Builder<JavaFileScanner> results = ImmutableList.builder();
     for (JavaFileScanner scanner : scanners) {
-      if (shouldBeExecuted(scanner)) {
+      if (!(scanner instanceof JavaVersionAwareVisitor) || ((JavaVersionAwareVisitor) scanner).isCompatibleWithJavaVersion(javaVersion)) {
         results.add(scanner);
       }
     }
     return results.build();
-  }
-
-  private boolean shouldBeExecuted(JavaFileScanner scanner) {
-    if (scanner instanceof JavaVersionAwareVisitor) {
-      return ((JavaVersionAwareVisitor) scanner).isCompatibleWithJavaVersion(javaVersion);
-    }
-    return true;
   }
 
   protected JavaFileScannerContext createScannerContext(

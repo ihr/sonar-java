@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.checks;
 
@@ -72,11 +72,13 @@ public class NoTestInTestClassCheck extends SubscriptionBaseVisitor {
     for (Tree typeTree : cut.types()) {
       if (typeTree.is(Kind.CLASS)) {
         ClassTree classTree = (ClassTree) typeTree;
-        if (classTree.symbol().metadata().isAnnotatedWith("org.testng.annotations.Test")) {
-          checkTestNGmembers(classTree);
-        } else if (!ModifiersUtils.hasModifier(classTree.modifiers(), Modifier.ABSTRACT)) {
-          checkJunit3TestClass(classTree);
-          checkJunit4TestClass(classTree);
+        if (!ModifiersUtils.hasModifier(classTree.modifiers(), Modifier.ABSTRACT)) {
+          if (classTree.symbol().metadata().isAnnotatedWith("org.testng.annotations.Test")) {
+            checkTestNGmembers(classTree);
+          } else {
+            checkJunit3TestClass(classTree);
+            checkJunit4TestClass(classTree);
+          }
         }
       }
     }

@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java;
 
@@ -38,6 +38,7 @@ import org.sonar.java.bytecode.visitor.BytecodeContext;
 import org.sonar.java.bytecode.visitor.DefaultBytecodeContext;
 import org.sonar.java.bytecode.visitor.DependenciesVisitor;
 import org.sonar.java.model.InternalVisitorsBridge;
+import org.sonar.java.se.checks.SECheck;
 import org.sonar.plugins.java.api.JavaResourceLocator;
 import org.sonar.squidbridge.api.CodeVisitor;
 import org.sonar.squidbridge.api.Query;
@@ -91,7 +92,8 @@ public class JavaSquid implements SourceCodeSearchEngine {
 
     //AstScanner for main files
     astScanner = new JavaAstScanner(JavaParser.createParser(conf.getCharset()));
-    astScanner.setVisitorBridge(createVisitorBridge(codeVisitors, classpath, conf, sonarComponents, true));
+    boolean enableSymbolicExecution = hasASymbolicExecutionCheck(visitors);
+    astScanner.setVisitorBridge(createVisitorBridge(codeVisitors, classpath, conf, sonarComponents, enableSymbolicExecution));
 
     //AstScanner for test files
     astScannerForTests = new JavaAstScanner(astScanner);
@@ -107,6 +109,15 @@ public class JavaSquid implements SourceCodeSearchEngine {
     }
 
     squidIndex = (SquidIndex) astScanner.getIndex();
+  }
+
+  private static boolean hasASymbolicExecutionCheck(CodeVisitor[] visitors) {
+    for (CodeVisitor visitor : visitors) {
+      if(visitor instanceof SECheck) {
+        return true;
+      }
+    }
+    return false;
   }
 
   private static InternalVisitorsBridge createVisitorBridge(

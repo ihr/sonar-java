@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,13 +13,17 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.se;
 
+import com.google.common.base.Preconditions;
+import org.sonar.plugins.java.api.semantic.Type;
+import org.sonar.plugins.java.api.tree.IdentifierTree;
 import org.sonar.plugins.java.api.tree.LiteralTree;
+import org.sonar.plugins.java.api.tree.MemberSelectExpressionTree;
 import org.sonar.plugins.java.api.tree.Tree;
 
 import java.util.List;
@@ -27,10 +31,11 @@ import java.util.List;
 public class ConstraintManager {
 
   private int counter = ProgramState.EMPTY_STATE.constraintsSize();
-  private SymbolicValue wrappedValue;
+  private SymbolicValueFactory symbolicValueFactory;
 
-  public void setWrappedValue(SymbolicValue wrappedValue) {
-    this.wrappedValue = wrappedValue;
+  public void setValueFactory(SymbolicValueFactory valueFactory) {
+    Preconditions.checkState(symbolicValueFactory == null, "The symbolic value factory has already been defined by another checker!");
+    symbolicValueFactory = valueFactory;
   }
 
   public SymbolicValue createSymbolicValue(Tree syntaxNode) {
@@ -46,21 +51,49 @@ public class ConstraintManager {
         result = new SymbolicValue.NotSymbolicValue(counter);
         break;
       case AND:
+      case AND_ASSIGNMENT:
         result = new SymbolicValue.AndSymbolicValue(counter);
         break;
       case OR:
+      case OR_ASSIGNMENT:
         result = new SymbolicValue.OrSymbolicValue(counter);
         break;
       case XOR:
+      case XOR_ASSIGNMENT:
         result = new SymbolicValue.XorSymbolicValue(counter);
         break;
       case INSTANCE_OF:
         result = new SymbolicValue.InstanceOfSymbolicValue(counter);
         break;
+      case MEMBER_SELECT:
+        result = createIdentifierSymbolicValue(((MemberSelectExpressionTree) syntaxNode).identifier());
+        break;
+      case IDENTIFIER:
+        result = createIdentifierSymbolicValue((IdentifierTree) syntaxNode);
+        break;
       default:
-        result = wrappedValue == null ? new SymbolicValue(counter, syntaxNode) : new SymbolicValue.ResourceWrapperSymbolicValue(counter, wrappedValue);
+        result = createDefaultSymbolicValue(syntaxNode);
     }
     counter++;
+    return result;
+  }
+
+  private SymbolicValue createIdentifierSymbolicValue(IdentifierTree identifier) {
+    final Type type = identifier.symbol().type();
+    if (type != null && type.is("java.lang.Boolean")) {
+      if ("TRUE".equals(identifier.name())) {
+        return SymbolicValue.TRUE_LITERAL;
+      } else if ("FALSE".equals(identifier.name())) {
+        return SymbolicValue.FALSE_LITERAL;
+      }
+    }
+    return createDefaultSymbolicValue(identifier);
+  }
+
+  private SymbolicValue createDefaultSymbolicValue(Tree syntaxNode) {
+    SymbolicValue result;
+    result = symbolicValueFactory == null ? new SymbolicValue(counter) : symbolicValueFactory.createSymbolicValue(counter, syntaxNode);
+    symbolicValueFactory = null;
     return result;
   }
 
@@ -78,7 +111,7 @@ public class ConstraintManager {
   }
 
   public boolean isNull(ProgramState ps, SymbolicValue val) {
-    return NullConstraint.NULL.equals(ps.getConstraint(val));
+    return ObjectConstraint.NULL.equals(ps.getConstraint(val));
   }
 
   public Pair<List<ProgramState>, List<ProgramState>> assumeDual(ProgramState programState) {
@@ -90,19 +123,6 @@ public class ConstraintManager {
     return new Pair<>(falseConstraint, trueConstraint);
   }
 
-  public enum NullConstraint {
-    NULL,
-    NOT_NULL,
-    OPENED,
-    CLOSED;
-    NullConstraint inverse() {
-      if (NULL == this) {
-        return NOT_NULL;
-      }
-      return NULL;
-    }
-  }
-
   public enum BooleanConstraint {
     TRUE,
     FALSE;
@@ -112,10 +132,6 @@ public class ConstraintManager {
       }
       return TRUE;
     }
-  }
-
-  public List<Tree> getOpenedResources(final ProgramState programState) {
-    return programState.getConstrainedSyntaxNodes(NullConstraint.OPENED);
   }
 
   public static class TypedConstraint {

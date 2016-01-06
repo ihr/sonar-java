@@ -1,7 +1,7 @@
 /*
- * SonarSource :: Java :: ITs :: Ruling
- * Copyright (C) 2013 ${owner}
- * sonarqube@googlegroups.com
+ * SonarQube Java
+ * Copyright (C) 2013-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.it;
 
@@ -126,6 +126,7 @@ public class JavaRulingTest {
     orchestrator.getServer().associateProjectToQualityProfile(projectKey, "java", "rules");
     MavenBuild mavenBuild = MavenBuild.create().setPom(pomFile).setCleanPackageSonarGoals().addArgument("-DskipTests")
       .setProperty("sonar.cpd.skip", "true")
+      .setProperty("sonar.import_unknown_files", "true")
       .setProperty("sonar.skipPackageDesign", "true")
       .setProperty("sonar.analysis.mode", "preview")
       .setProperty("sonar.issuesReport.html.enable", "true")

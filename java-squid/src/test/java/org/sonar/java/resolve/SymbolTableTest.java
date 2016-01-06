@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.resolve;
 
@@ -89,6 +89,9 @@ public class SymbolTableTest {
     MethodTree methodTree = (MethodTree) result.getTree(result.symbol("unknownSymbol"));
     VariableTree variableTree = (VariableTree) methodTree.block().body().get(0);
     assertThat(variableTree.type().symbolType().isUnknown()).isTrue();
+
+    //Inner class referenced as type parameter in super class/interface
+    assertThat(result.reference(68,53)).isSameAs(result.symbol("B", 69));
 
   }
 

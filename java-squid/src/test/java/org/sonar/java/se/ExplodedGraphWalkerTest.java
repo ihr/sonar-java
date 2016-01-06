@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.se;
 
@@ -23,6 +23,7 @@ import com.google.common.collect.Multimap;
 import org.junit.Test;
 import org.sonar.java.model.DefaultJavaFileScannerContext;
 import org.sonar.java.se.checks.ConditionAlwaysTrueOrFalseCheck;
+import org.sonar.java.se.checks.LocksNotUnlockedCheck;
 import org.sonar.java.se.checks.NullDereferenceCheck;
 import org.sonar.java.se.checks.SECheck;
 import org.sonar.java.se.checks.UnclosedResourcesCheck;
@@ -33,14 +34,39 @@ import org.sonar.plugins.java.api.tree.Tree;
 
 import java.util.Map;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.fest.assertions.Fail.fail;
 
-  public class ExplodedGraphWalkerTest {
+public class ExplodedGraphWalkerTest {
 
   @Test
   public void test() {
     JavaCheckVerifier.verify("src/test/files/se/SeEngineTest.java", new IssueVisitor());
   }
+
+  @Test
+  public void test_cleanup_state() {
+    final int[] steps = new int[2];
+    JavaCheckVerifier.verifyNoIssue("src/test/files/se/SeEngineTestCleanupState.java", new SymbolicExecutionVisitor() {
+      @Override
+      public void visitNode(Tree tree) {
+          ExplodedGraphWalker explodedGraphWalker = new ExplodedGraphWalker(context, false);
+          tree.accept(explodedGraphWalker);
+        steps[0] += explodedGraphWalker.steps;
+      }
+    });
+    JavaCheckVerifier.verifyNoIssue("src/test/files/se/SeEngineTestCleanupState.java", new SymbolicExecutionVisitor() {
+      @Override
+      public void visitNode(Tree tree) {
+        ExplodedGraphWalker explodedGraphWalker = new ExplodedGraphWalker(context);
+        tree.accept(explodedGraphWalker);
+        steps[1] += explodedGraphWalker.steps;
+      }
+    });
+    assertThat(steps[0]).isPositive();
+    assertThat(steps[0]).isGreaterThan(steps[1]);
+  }
+
   @Test
   public void reproducer() throws Exception {
     JavaCheckVerifier.verify("src/test/files/se/Reproducer.java", new IssueVisitor());
@@ -53,13 +79,14 @@ import static org.fest.assertions.Fail.fail;
       public void visitNode(Tree tree) {
         try {
           tree.accept(new ExplodedGraphWalker(context));
-        }catch (ExplodedGraphWalker.MaximumStepsReachedException exception) {
+        } catch (ExplodedGraphWalker.MaximumStepsReachedException exception) {
           fail("loop execution should be limited");
         }
 
       }
     });
   }
+
   class IssueVisitor implements JavaFileScanner {
 
     @Override
@@ -67,6 +94,7 @@ import static org.fest.assertions.Fail.fail;
       reportIssuesFor(context, new NullDereferenceCheck());
       reportIssuesFor(context, new ConditionAlwaysTrueOrFalseCheck());
       reportIssuesFor(context, new UnclosedResourcesCheck());
+      reportIssuesFor(context, new LocksNotUnlockedCheck());
     }
 
     private void reportIssuesFor(JavaFileScannerContext context, JavaCheck check) {

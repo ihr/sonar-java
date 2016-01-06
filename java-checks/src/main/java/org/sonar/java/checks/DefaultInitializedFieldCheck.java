@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.checks;
 
@@ -70,16 +70,17 @@ public class DefaultInitializedFieldCheck extends SubscriptionBaseVisitor {
     ExpressionTree initializer = member.initializer();
     if (initializer != null) {
       initializer = ExpressionsHelper.skipParentheses(initializer);
-      if (isDefault(initializer)) {
+      if (isDefault(initializer, member.type().symbolType().isPrimitive())) {
         addIssue(member, "Remove this initialization to \"" + ((LiteralTree) initializer).value() + "\", the compiler will do that for you.");
       }
     }
   }
 
-  private static boolean isDefault(ExpressionTree expression) {
+  private static boolean isDefault(ExpressionTree expression, boolean isPrimitive) {
+    if(!isPrimitive) {
+      return expression.is(Kind.NULL_LITERAL);
+    }
     switch (expression.kind()) {
-      case NULL_LITERAL:
-        return true;
       case CHAR_LITERAL:
         String charValue = ((LiteralTree) expression).value();
         return "'\\u0000'".equals(charValue) || "'\\0'".equals(charValue);

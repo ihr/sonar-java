@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java;
 
@@ -59,6 +59,13 @@ public class JavaTestClasspathTest {
     assertThat(javaTestClasspath.getElements().get(0)).exists();
     assertThat(javaTestClasspath.getElements().get(1)).exists();
     assertThat(javaTestClasspath.getElements()).onProperty("name").contains("hello.jar", "world.jar");
+  }
+
+  @Test
+  public void empty_libraries() throws Exception {
+    settings.setProperty(JavaClasspathProperties.SONAR_JAVA_TEST_LIBRARIES, "");
+    javaTestClasspath = createJavaClasspath();
+    assertThat(javaTestClasspath.getElements()).isEmpty();
   }
 
   @Test

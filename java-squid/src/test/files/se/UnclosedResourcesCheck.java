@@ -3,16 +3,24 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+
+import org.apache.commons.io.IOUtils;
+
+import javax.annotation.Nonnull;
+
 import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.nio.file.Path;
 import java.io.FileReader;
 import java.io.BufferedWriter;
 import java.util.Formatter;
 import java.util.jar.JarFile;
 import java.io.DataInputStream;
+import java.io.File;
 
 public class A {
   private final static int MAX_LOOP = 42;
@@ -238,6 +246,30 @@ public class A {
       jar.entries();
     } finally {
       closeJar(jar);
+    }
+  }
+
+  public void getDirectivesFromFile(File aFile) {
+    BufferedReader reader = null;
+    try {
+      reader = new BufferedReader(new FileReader(aFile));
+      reader.read();
+    } finally {
+      IOUtils.closeQuietly(reader);
+    }
+  }
+  
+  public InputStream getStreamAsNewInstanceArgument(@Nonnull String obj) throws IOException {
+    String key = getKey(Obj);
+    try {
+      lock();
+      Path path = getCacheCopy(key);
+      if (path == null) {
+        return ull;
+      }
+      return new DeleteFileOnCloseInputStream(new FileInputStream(path.toFile()), path);
+    } finally {
+      unlock();
     }
   }
 }

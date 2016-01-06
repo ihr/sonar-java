@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2012 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2012-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.java.se.checks;
 
@@ -26,7 +26,7 @@ import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.java.model.DefaultJavaFileScannerContext;
 import org.sonar.java.se.CheckerContext;
-import org.sonar.java.se.ConstraintManager;
+import org.sonar.java.se.ObjectConstraint;
 import org.sonar.java.se.ProgramState;
 import org.sonar.java.se.SymbolicValue;
 import org.sonar.plugins.java.api.JavaFileScanner;
@@ -79,7 +79,7 @@ public class NullDereferenceCheck extends SECheck implements JavaFileScanner {
       }
       if (context.getState().getConstraint(currentVal) == null) {
         // we dereferenced the symbolic value so we can assume it is not null
-        return currentVal.setSingleConstraint(context.getState(), ConstraintManager.NullConstraint.NOT_NULL);
+        return currentVal.setSingleConstraint(context.getState(), ObjectConstraint.NOT_NULL);
       }
     }
     return context.getState();
@@ -106,8 +106,8 @@ public class NullDereferenceCheck extends SECheck implements JavaFileScanner {
       assert val != null && val.equals(SymbolicValue.NULL_LITERAL);
     } else if (syntaxNode.is(Tree.Kind.METHOD_INVOCATION) && isAnnotatedCheckForNull((MethodInvocationTree) syntaxNode)) {
       List<ProgramState> states = new ArrayList<>();
-      states.addAll(val.setConstraint(context.getState(), ConstraintManager.NullConstraint.NULL));
-      states.addAll(val.setConstraint(context.getState(), ConstraintManager.NullConstraint.NOT_NULL));
+      states.addAll(val.setConstraint(context.getState(), ObjectConstraint.NULL));
+      states.addAll(val.setConstraint(context.getState(), ObjectConstraint.NOT_NULL));
       return states;
     }
     return Lists.newArrayList(context.getState());

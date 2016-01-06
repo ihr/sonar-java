@@ -1,7 +1,7 @@
 /*
  * SonarQube Java
- * Copyright (C) 2010 SonarSource
- * sonarqube@googlegroups.com
+ * Copyright (C) 2010-2016 SonarSource SA
+ * mailto:contact AT sonarsource DOT com
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -13,9 +13,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * Lesser General Public License for more details.
  *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this program; if not, write to the Free Software
- * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 package org.sonar.plugins.jacoco;
 
@@ -64,16 +64,15 @@ public class ExecutionDataReaderStrategy {
         GridFSBucket gridFSBucket = GridFSBuckets.create(mongoClient.getDatabase(mongoDbUrl.getDatabase()), "jacoco");
         boolean currentReportFormat = CurrentReportFormatDetector.isCurrentReportFormat(gridFSBucket.openDownloadStream(new ObjectId(documentId)), documentId);
 
-        JacocoReportReader jacocoReportReader;
         JaCoCoExtensions.LOG.info("Analysing MongoDB JaCoCo analze document {}", documentId);
         try(GridFSDownloadStream stream = gridFSBucket.openDownloadStream(new ObjectId(documentId))) {
-            jacocoReportReader = new JacocoReportReader(stream, currentReportFormat)
+            new JacocoReportReader(stream, currentReportFormat)
                     .readJacocoReport(executionDataVisitor, executionDataVisitor);
         } catch (IOException e) {
             throw new IllegalStateException(String.format("Unable to read %s", documentId), e);
         }
 
-        return new ExecutionDataReaderPack(executionDataVisitor, jacocoReportReader, currentReportFormat);
+        return new ExecutionDataReaderPack(executionDataVisitor, currentReportFormat);
     }
 
 
