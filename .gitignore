@@ -29,3 +29,7 @@ Thumbs.db
 Desktop.ini
 
 .java-version
+
+.idea
+
+.DS_Store

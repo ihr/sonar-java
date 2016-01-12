@@ -19,6 +19,7 @@
  */
 package org.sonar.plugins.jacoco;
 
+import org.apache.commons.lang.StringUtils;
 import org.sonar.api.batch.Sensor;
 import org.sonar.api.batch.SensorContext;
 import org.sonar.api.batch.fs.FileSystem;
@@ -54,6 +55,10 @@ public class JaCoCoItSensor implements Sensor {
 
   @Override
   public boolean shouldExecuteOnProject(Project project) {
+    if(StringUtils.startsWith(configuration.getItReportPath(), "http")) {
+      JaCoCoExtensions.LOG.info("JaCoCoItSensor: HTTP report path detected");
+      return true;
+    }
     File report = pathResolver.relativeFile(fileSystem.baseDir(), configuration.getItReportPath());
     boolean foundReport = report.isFile();
     if(!foundReport) {

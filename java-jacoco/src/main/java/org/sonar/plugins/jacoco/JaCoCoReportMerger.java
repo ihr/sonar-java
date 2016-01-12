@@ -27,10 +27,7 @@ import org.jacoco.core.data.ISessionInfoVisitor;
 import org.jacoco.core.data.SessionInfoStore;
 import org.sonar.api.utils.SonarException;
 
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * Utility class to merge JaCoCo reports.
@@ -70,11 +67,15 @@ public class JaCoCoReportMerger {
     Boolean isCurrentVersionFormat = null;
     for (File report : reports) {
       if (report.isFile()) {
-        JacocoReportReader jacocoReportReader = new JacocoReportReader(report).readJacocoReport(dataStore, infoStore);
-        boolean reportFormatIsCurrent = jacocoReportReader.useCurrentBinaryFormat();
+        boolean currentReportFormat = CurrentReportFormatDetector.isCurrentReportFormat(report);
+        try {
+          new JacocoReportReader(new FileInputStream(report), currentReportFormat).readJacocoReport(dataStore, infoStore);
+        } catch (IOException e) {
+          throw new IllegalStateException(e);
+        }
         if (isCurrentVersionFormat == null) {
-          isCurrentVersionFormat = reportFormatIsCurrent;
-        } else if (!isCurrentVersionFormat.equals(reportFormatIsCurrent)) {
+          isCurrentVersionFormat = currentReportFormat;
+        } else if (!isCurrentVersionFormat.equals(currentReportFormat)) {
           throw new IllegalStateException("You are trying to merge two different JaCoCo binary formats. Please use only one version of JaCoCo.");
         }
       }

@@ -30,6 +30,10 @@
       <id>godin</id>
       <name>Evgeny Mandrikov</name>
     </developer>
+    <developer>
+      <id>ihr</id>
+      <name>Ivan Hristov</name>
+    </developer>
   </developers>
 
   <dependencies>
